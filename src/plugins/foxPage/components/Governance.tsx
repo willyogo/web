@@ -6,13 +6,13 @@ import { Card } from 'components/Card/Card'
 import { Text } from 'components/Text/Text'
 import { bnOrZero } from 'lib/bignumber/bignumber'
 
-import { useGetGovernanceData } from '../hooks/getGovernanceData'
+import { useGovernanceData } from '../hooks/useGovernanceData'
 
 const BOARDROOM_APP_BASE_URL = getConfig().REACT_APP_BOARDROOM_APP_BASE_URL
 
 export const Governance = () => {
   const linkColor = useColorModeValue('blue.500', 'blue.200')
-  const governanceData = useGetGovernanceData()
+  const governanceData = useGovernanceData()
 
   return (
     <Card display='block' width='full'>

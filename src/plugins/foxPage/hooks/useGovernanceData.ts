@@ -35,7 +35,7 @@ const parseGovernanceData = (governanceData: BoardroomGovernanceData) => {
   })
 }
 
-export const useGetGovernanceData = () => {
+export const useGovernanceData = () => {
   const [data, setData] = useState<ReturnType<typeof parseGovernanceData>>([])
   const [error, setError] = useState<any>()
   const [loaded, setLoaded] = useState<boolean>(false)
