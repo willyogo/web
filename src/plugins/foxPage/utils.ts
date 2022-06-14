@@ -17,6 +17,9 @@ const moduleLogger = logger.child({
 export const ethersProvider = (() => {
   const provider = web3Instance.currentProvider
 
+  // For testing purposes - provider will always be defined at runtime
+  if (!provider) return
+
   return new providers.Web3Provider(
     provider as providers.ExternalProvider, // TODO(gomes): Can we remove this casting?
   )

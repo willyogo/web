@@ -14,6 +14,8 @@ import { getCurrentBlockNumber } from './getCurrentBlockNumber'
 export const getLpApr = async (): Promise<string> => {
   const blockNumber = await getCurrentBlockNumber()
 
+  if (!blockNumber) return ''
+
   const liquidityContractAddress = UNISWAP_V2_WETH_FOX_POOL_ADDRESS
   const uniswapLPContract = new Contract(
     liquidityContractAddress,
