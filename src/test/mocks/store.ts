@@ -24,6 +24,7 @@ export const mockStore: ReduxState = {
   marketApi: mockApiFactory('marketApi' as const),
   txHistoryApi: mockApiFactory('txHistoryApi' as const),
   validatorDataApi: mockApiFactory('validatorDataApi' as const),
+  aprDataApi: mockApiFactory('aprDataApi' as const),
   portfolio: {
     accounts: {
       byId: {},
@@ -48,7 +49,6 @@ export const mockStore: ReduxState = {
   preferences: {
     featureFlags: {
       Osmosis: false,
-      FoxPage: false,
     },
     selectedLocale: 'en',
     balanceThreshold: '0',
@@ -93,5 +93,10 @@ export const mockStore: ReduxState = {
   validatorData: {
     byValidator: {},
     validatorIds: [],
+  },
+  aprData: {
+    foxyApr: null,
+    farmingApr: null,
+    lpApr: null,
   },
 }

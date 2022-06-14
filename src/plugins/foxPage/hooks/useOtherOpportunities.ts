@@ -1,15 +1,14 @@
 import { AssetId } from '@shapeshiftoss/caip'
-import { useFarmingApr } from 'plugins/foxPage/hooks/useFarmingApr'
-import { useLpApr } from 'plugins/foxPage/hooks/useLpApr'
 import { useMemo } from 'react'
+import { useAppSelector } from 'state/store'
 
 import { FOX_ASSET_ID, FOXY_ASSET_ID, OpportunitiesBucket, OpportunityTypes } from '../FoxCommon'
-import { useFoxyApr } from './useFoxyApr'
+import { selectFarmingApr, selectFoxyApr, selectLpApr } from '../selectors'
 
 export const useOtherOpportunities = (assetId: AssetId) => {
-  const { farmingApr, loaded: isFarmingAprLoaded } = useFarmingApr()
-  const { lpApr, loaded: isLpAprLoaded } = useLpApr()
-  const { foxyApr, loaded: isFoxyAprLoaded } = useFoxyApr()
+  const farmingApr = useAppSelector(state => selectFarmingApr(state))
+  const lpApr = useAppSelector(state => selectLpApr(state))
+  const foxyApr = useAppSelector(state => selectFoxyApr(state))
 
   const otherOpportunities = useMemo(() => {
     const opportunities: Record<AssetId, OpportunitiesBucket[]> = {
@@ -20,8 +19,8 @@ export const useOtherOpportunities = (assetId: AssetId) => {
           opportunities: [
             {
               title: 'ETH-FOX V2',
-              isLoaded: isLpAprLoaded,
-              apy: isLpAprLoaded ? lpApr : null,
+              isLoaded: Boolean(lpApr),
+              apy: lpApr,
               link: 'https://app.uniswap.org/#/add/v2/ETH/0xc770EEfAd204B5180dF6a14Ee197D99d808ee52d?chain=mainnet',
               icons: [
                 'https://assets.coincap.io/assets/icons/eth@2x.png',
@@ -36,8 +35,8 @@ export const useOtherOpportunities = (assetId: AssetId) => {
           opportunities: [
             {
               title: 'ETH-FOX V3',
-              isLoaded: isFarmingAprLoaded,
-              apy: isFarmingAprLoaded ? farmingApr : null,
+              isLoaded: Boolean(farmingApr),
+              apy: farmingApr,
               link: 'https://app.uniswap.org/#/add/ETH/0xc770EEfAd204B5180dF6a14Ee197D99d808ee52d/3000?chain=mainnet',
               icons: [
                 'https://assets.coincap.io/assets/icons/eth@2x.png',
@@ -52,8 +51,8 @@ export const useOtherOpportunities = (assetId: AssetId) => {
           opportunities: [
             {
               title: 'FOX',
-              isLoaded: isFoxyAprLoaded,
-              apy: isFoxyAprLoaded ? foxyApr : foxyApr,
+              isLoaded: Boolean(foxyApr),
+              apy: foxyApr,
               link: 'https://www.tokemak.xyz/',
               icons: ['https://assets.coincap.io/assets/icons/fox@2x.png'],
             },
@@ -80,7 +79,7 @@ export const useOtherOpportunities = (assetId: AssetId) => {
     }
 
     return opportunities[assetId]
-  }, [lpApr, foxyApr, farmingApr, assetId, isLpAprLoaded, isFoxyAprLoaded, isFarmingAprLoaded])
+  }, [lpApr, foxyApr, farmingApr, assetId])
 
   return otherOpportunities
 }

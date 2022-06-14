@@ -1,7 +1,7 @@
 import { AssetId, ChainId, ethChainId, toAssetId } from '@shapeshiftoss/caip'
 import { DefiType, FoxyApi, WithdrawInfo } from '@shapeshiftoss/investor-foxy'
 import { useFoxy } from 'features/defi/contexts/FoxyProvider/FoxyProvider'
-import { useFoxyApr } from 'plugins/foxPage/hooks/useFoxyApr'
+import { selectFoxyApr } from 'plugins/foxPage/selectors'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { useChainAdapters } from 'context/PluginProvider/PluginProvider'
@@ -17,6 +17,7 @@ import {
   selectPortfolioAssetBalances,
   selectPortfolioLoading,
 } from 'state/slices/selectors'
+import { useAppSelector } from 'state/store'
 
 export type FoxyOpportunity = {
   type: DefiType
@@ -116,7 +117,7 @@ export function useFoxyBalances(): UseFoxyBalancesReturn {
   } = useWallet()
 
   const { foxy, loading: foxyLoading } = useFoxy()
-  const { foxyApr } = useFoxyApr()
+  const foxyApr = useAppSelector(state => selectFoxyApr(state))
   const balances = useSelector(selectPortfolioAssetBalances)
   const balancesLoading = useSelector(selectPortfolioLoading)
 

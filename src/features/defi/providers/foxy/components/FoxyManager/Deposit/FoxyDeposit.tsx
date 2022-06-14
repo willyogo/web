@@ -4,7 +4,7 @@ import { FoxyApi } from '@shapeshiftoss/investor-foxy'
 import { DepositValues } from 'features/defi/components/Deposit/Deposit'
 import { DefiParams, DefiQueryParams } from 'features/defi/contexts/DefiManagerProvider/DefiCommon'
 import { AnimatePresence } from 'framer-motion'
-import { useFoxyApr } from 'plugins/foxPage/hooks/useFoxyApr'
+import { selectFoxyApr } from 'plugins/foxPage/selectors'
 import { useEffect, useReducer } from 'react'
 import { useTranslate } from 'react-polyglot'
 import { useSelector } from 'react-redux'
@@ -50,13 +50,13 @@ export const FoxyDeposit = ({ api }: FoxyDepositProps) => {
   // user info
   const chainAdapterManager = useChainAdapters()
   const { state: walletState } = useWallet()
-  const { foxyApr, loaded: isFoxyAprLoaded } = useFoxyApr()
+  const foxyApr = useAppSelector(state => selectFoxyApr(state))
   const loading = useSelector(selectPortfolioLoading)
 
   useEffect(() => {
     ;(async () => {
       try {
-        if (!walletState.wallet || !contractAddress || !isFoxyAprLoaded) return
+        if (!walletState.wallet || !contractAddress || !foxyApr) return
         const chainAdapter = await chainAdapterManager.byChainId('eip155:1')
         const [address, foxyOpportunity] = await Promise.all([
           chainAdapter.getAddress({ wallet: walletState.wallet }),
@@ -72,7 +72,7 @@ export const FoxyDeposit = ({ api }: FoxyDepositProps) => {
         console.error('FoxyDeposit error:', error)
       }
     })()
-  }, [api, chainAdapterManager, contractAddress, walletState.wallet, foxyApr, isFoxyAprLoaded])
+  }, [api, chainAdapterManager, contractAddress, walletState.wallet, foxyApr])
 
   const getDepositGasEstimate = async (deposit: DepositValues) => {
     if (!state.userAddress || !tokenId) return

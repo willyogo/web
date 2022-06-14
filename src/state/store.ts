@@ -1,5 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit'
 import localforage from 'localforage'
+import { aprDataApi } from 'plugins/foxPage/slice'
 import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux'
 import { PERSIST, persistReducer, persistStore } from 'redux-persist'
 import { getStateWith, registerSelectors } from 'reselect-tools'
@@ -24,6 +25,7 @@ const apiMiddleware = [
   assetApi.middleware,
   txHistoryApi.middleware,
   validatorDataApi.middleware,
+  aprDataApi.middleware,
 ]
 
 const persistedReducer = persistReducer(persistConfig, reducer)
@@ -33,6 +35,7 @@ export const clearState = () => {
   store.dispatch(slices.marketData.actions.clear())
   store.dispatch(slices.txHistory.actions.clear())
   store.dispatch(slices.validatorData.actions.clear())
+  store.dispatch(slices.aprData.actions.clear())
   store.dispatch(slices.portfolio.actions.clear())
   store.dispatch(slices.accountSpecifiers.actions.clear())
 
@@ -41,6 +44,7 @@ export const clearState = () => {
   store.dispatch(apiSlices.portfolioApi.util.resetApiState())
   store.dispatch(apiSlices.txHistoryApi.util.resetApiState())
   store.dispatch(apiSlices.validatorDataApi.util.resetApiState())
+  store.dispatch(apiSlices.aprDataApi.util.resetApiState())
 }
 
 /**

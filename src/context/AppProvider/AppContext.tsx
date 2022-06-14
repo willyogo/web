@@ -21,6 +21,7 @@ import {
 } from '@shapeshiftoss/hdwallet-core'
 import { HistoryTimeframe } from '@shapeshiftoss/types'
 import isEmpty from 'lodash/isEmpty'
+import { aprDataApi } from 'plugins/foxPage/slice'
 import React, { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { usePlugins } from 'context/PluginProvider/PluginProvider'
@@ -210,13 +211,15 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     })
   }, [dispatch, accountSpecifiersList])
 
-  // once portfolio is done loading, fetch all transaction history
+  // once portfolio is done loading, fetch all transaction history and apr data
   useEffect(() => {
     if (!isPortfolioLoaded) return
 
     const { getAllTxHistory } = txHistoryApi.endpoints
+    const { getAprData } = aprDataApi.endpoints
 
     dispatch(getAllTxHistory.initiate({ accountSpecifiersList }, { forceRefetch: true }))
+    dispatch(getAprData.initiate({}))
   }, [dispatch, accountSpecifiersList, isPortfolioLoaded])
 
   // once portfolio and transaction history are done loading, fetch remaining chain specific data

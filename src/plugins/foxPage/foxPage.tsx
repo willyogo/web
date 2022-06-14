@@ -18,6 +18,7 @@ import {
 import { AssetId } from '@shapeshiftoss/caip'
 import { foxyAddresses } from '@shapeshiftoss/investor-foxy'
 import { FoxyPath } from 'features/defi/providers/foxy/components/FoxyManager/FoxyCommon'
+import { selectFoxyApr } from 'plugins/foxPage/selectors'
 import qs from 'qs'
 import { useMemo } from 'react'
 import { useTranslate } from 'react-polyglot'
@@ -51,7 +52,6 @@ import {
   FOXY_ASSET_ID,
   foxyTradeOpportunitiesBuckets,
 } from './FoxCommon'
-import { useFoxyApr } from './hooks/useFoxyApr'
 import { useOtherOpportunities } from './hooks/useOtherOpportunities'
 
 export enum FoxPageRoutes {
@@ -121,7 +121,7 @@ export const FoxPage = () => {
     [cryptoBalanceFox, cryptoBalanceFoxy],
   )
 
-  const { foxyApr, loaded: isFoxyAprLoaded } = useFoxyApr()
+  const foxyApr = useAppSelector(state => selectFoxyApr(state))
 
   const totalFiatBalance = bnOrZero(fiatBalanceFox).plus(fiatBalanceFoxy).toString()
 
@@ -225,7 +225,7 @@ export const FoxPage = () => {
                   assetId={selectedAsset.assetId}
                   apy={foxyApr ?? ''}
                   tvl={bnOrZero(foxyBalances.opportunities?.[0]?.tvl).toString()}
-                  isLoaded={!foxyBalances.loading && isFoxyAprLoaded}
+                  isLoaded={!foxyBalances.loading && Boolean(foxyApr)}
                   balance={cryptoBalances[selectedAssetIndex]}
                   onClick={() => {
                     history.push({

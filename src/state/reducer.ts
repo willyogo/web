@@ -1,5 +1,6 @@
 import { combineReducers } from '@reduxjs/toolkit'
 import localforage from 'localforage'
+import { aprData, aprDataApi } from 'plugins/foxPage/slice'
 import { persistReducer } from 'redux-persist'
 
 import { accountSpecifiers } from './slices/accountSpecifiersSlice/accountSpecifiersSlice'
@@ -18,6 +19,9 @@ export const slices = {
   portfolio,
   preferences,
   accountSpecifiers,
+
+  // Plugins slices
+  aprData,
 }
 
 const preferencesPersistConfig = {
@@ -34,6 +38,9 @@ export const sliceReducers = {
   preferences: persistReducer(preferencesPersistConfig, preferences.reducer),
   accountSpecifiers: accountSpecifiers.reducer,
   validatorData: validatorData.reducer,
+
+  // Plugins reducers
+  aprData: aprData.reducer,
 }
 
 export const apiSlices = {
@@ -42,6 +49,9 @@ export const apiSlices = {
   marketApi,
   txHistoryApi,
   validatorDataApi,
+
+  // Plugins API slices
+  aprDataApi,
 }
 
 export const apiReducers = {
@@ -50,6 +60,9 @@ export const apiReducers = {
   [marketApi.reducerPath]: marketApi.reducer,
   [txHistoryApi.reducerPath]: txHistoryApi.reducer,
   [validatorDataApi.reducerPath]: validatorDataApi.reducer,
+
+  // Plugins API reducers
+  [aprDataApi.reducerPath]: aprDataApi.reducer,
 }
 
 export const reducer = combineReducers({ ...sliceReducers, ...apiReducers })
