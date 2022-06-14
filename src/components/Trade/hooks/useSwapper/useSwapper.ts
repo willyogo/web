@@ -19,7 +19,7 @@ import { useChainAdapters } from 'context/PluginProvider/PluginProvider'
 import { useErrorHandler } from 'hooks/useErrorToast/useErrorToast'
 import { bn, bnOrZero } from 'lib/bignumber/bignumber'
 import { fromBaseUnit } from 'lib/math'
-import { getWeb3Instance } from 'lib/web3-instance'
+import { web3Instance } from 'lib/web3-instance'
 import {
   selectAssetIds,
   selectFeeAssetById,
@@ -52,8 +52,7 @@ export const useSwapper = () => {
   const adapterManager = useChainAdapters()
   const [swapperManager] = useState<SwapperManager>(() => {
     const manager = new SwapperManager()
-    const web3 = getWeb3Instance()
-    manager.addSwapper(SwapperType.Zrx, new ZrxSwapper({ web3, adapterManager }))
+    manager.addSwapper(SwapperType.Zrx, new ZrxSwapper({ web3: web3Instance, adapterManager }))
     return manager
   })
 

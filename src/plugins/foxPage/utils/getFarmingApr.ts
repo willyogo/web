@@ -10,9 +10,7 @@ import {
   WETH_TOKEN_CONTRACT_ADDRESS,
 } from '../const'
 import farmingAbi from '../farmingAbi.json'
-import { getEthersProvider, rewardRatePerToken } from '../utils'
-
-const ethersProvider = getEthersProvider()
+import { ethersProvider, rewardRatePerToken } from '../utils'
 
 export const getFarmingApr = async (): Promise<string> => {
   const liquidityContractAddress = UNISWAP_V2_WETH_FOX_POOL_ADDRESS

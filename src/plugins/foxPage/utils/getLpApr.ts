@@ -8,10 +8,8 @@ import {
   UNISWAP_V2_WETH_FOX_POOL_ADDRESS,
   WETH_TOKEN_CONTRACT_ADDRESS,
 } from '../const'
-import { calculateAPRFromToken0, getEthersProvider } from '../utils'
+import { calculateAPRFromToken0, ethersProvider } from '../utils'
 import { getCurrentBlockNumber } from './getCurrentBlockNumber'
-
-const ethersProvider = getEthersProvider()
 
 export const getLpApr = async (): Promise<string> => {
   const blockNumber = await getCurrentBlockNumber()

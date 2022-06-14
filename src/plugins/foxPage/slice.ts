@@ -47,7 +47,6 @@ export const aprDataApi = createApi({
           getLpApr(),
         ])
 
-        console.log({ foxyApr, farmingApr, lpApr })
         dispatch(
           aprData.actions.upsertAprData({
             foxyApr,
