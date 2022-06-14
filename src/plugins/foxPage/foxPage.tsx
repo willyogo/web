@@ -81,6 +81,7 @@ export const FoxPage = () => {
   const assetFox = useAppSelector(state => selectAssetById(state, FOX_ASSET_ID))
   const assetFoxy = useAppSelector(state => selectAssetById(state, FOXY_ASSET_ID))
   const foxyBalances = useFoxyBalances()
+  const tvl = useMemo(() => foxyBalances.opportunities?.[0]?.tvl, [foxyBalances.opportunities])
   const otherOpportunities = useOtherOpportunities(activeAssetId)
 
   const assets = useMemo(() => [assetFox, assetFoxy], [assetFox, assetFoxy])
@@ -121,6 +122,10 @@ export const FoxPage = () => {
     [cryptoBalanceFox, cryptoBalanceFoxy],
   )
 
+  const balance = useMemo(
+    () => cryptoBalances[selectedAssetIndex],
+    [cryptoBalances, selectedAssetIndex],
+  )
   const foxyApr = useAppSelector(state => selectFoxyApr(state))
 
   const totalFiatBalance = bnOrZero(fiatBalanceFox).plus(fiatBalanceFoxy).toString()
@@ -224,9 +229,8 @@ export const FoxPage = () => {
                 <MainOpportunity
                   assetId={selectedAsset.assetId}
                   apy={foxyApr ?? ''}
-                  tvl={bnOrZero(foxyBalances.opportunities?.[0]?.tvl).toString()}
-                  isLoaded={!foxyBalances.loading && Boolean(foxyApr)}
-                  balance={cryptoBalances[selectedAssetIndex]}
+                  tvl={tvl ? tvl.toString() : null}
+                  balance={balance || null}
                   onClick={() => {
                     history.push({
                       pathname: FoxyPath.Overview,

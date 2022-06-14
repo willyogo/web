@@ -13,20 +13,12 @@ import { useAppSelector } from 'state/store'
 type MainOpportunityProps = {
   apy: string
   assetId: string
-  balance: string
-  isLoaded: boolean
+  balance: string | null
   onClick: () => void
-  tvl: string
+  tvl: string | null
 }
 
-export const MainOpportunity = ({
-  apy,
-  assetId,
-  tvl,
-  balance,
-  onClick,
-  isLoaded,
-}: MainOpportunityProps) => {
+export const MainOpportunity = ({ apy, assetId, tvl, balance, onClick }: MainOpportunityProps) => {
   const translate = useTranslate()
 
   const selectedAsset = useAppSelector(state => selectAssetById(state, assetId))
@@ -64,15 +56,20 @@ export const MainOpportunity = ({
           </Box>
           <Box>
             <Text translation='plugins.foxPage.tvl' color='gray.500' mb={1} />
-            <Skeleton isLoaded={isLoaded}>
-              <Amount.Fiat color='inherit' fontSize={'xl'} fontWeight='semibold' value={tvl} />
+            <Skeleton isLoaded={Boolean(tvl)}>
+              <Amount.Fiat
+                color='inherit'
+                fontSize={'xl'}
+                fontWeight='semibold'
+                value={tvl ?? ''}
+              />
             </Skeleton>
           </Box>
           <Box>
             <Text translation='plugins.foxPage.balance' color='gray.500' mb={1} />
-            <CText color='inherit' fontSize={'xl'}>
-              {balance}
-            </CText>
+            <Skeleton isLoaded={Boolean(balance)}>
+              <Amount value={balance ?? ''} color='inherit' fontSize={'xl'} />
+            </Skeleton>
           </Box>
           <Skeleton isLoaded={!isFoxyBalancesLoading}>
             <Box alignSelf='center'>
