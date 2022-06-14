@@ -1,5 +1,5 @@
+import memoize from 'lodash/memoize'
+
 import { ethersProvider } from '../utils'
 
-const web3Provider = ethersProvider
-
-export const getCurrentBlockNumber = async () => web3Provider?.getBlockNumber()
+export const getCurrentBlockNumber = memoize(async () => ethersProvider?.getBlockNumber())
