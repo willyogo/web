@@ -1,18 +1,25 @@
 import { Badge, Box, Flex } from '@chakra-ui/layout'
 import { Link, Progress, Skeleton, Text as CText, useColorModeValue } from '@chakra-ui/react'
 import { getConfig } from 'config'
+import { useEffect, useState } from 'react'
 import { Amount } from 'components/Amount/Amount'
 import { Card } from 'components/Card/Card'
 import { Text } from 'components/Text/Text'
 import { bnOrZero } from 'lib/bignumber/bignumber'
 
-import { useGovernanceData } from '../hooks/useGovernanceData'
+import { getGovernanceData, ParsedBoardroomGovernanceData } from '../utils/getGovernanceData'
 
 const BOARDROOM_APP_BASE_URL = getConfig().REACT_APP_BOARDROOM_APP_BASE_URL
 
 export const Governance = () => {
+  const [governanceData, setGovernanceData] = useState<ParsedBoardroomGovernanceData | null>(null)
   const linkColor = useColorModeValue('blue.500', 'blue.200')
-  const governanceData = useGovernanceData()
+
+  useEffect(() => {
+    ;(async () => {
+      setGovernanceData(await getGovernanceData())
+    })()
+  })
 
   return (
     <Card display='block' width='full'>
@@ -31,10 +38,10 @@ export const Governance = () => {
         <Text translation='plugins.foxPage.governanceDescription' color='gray.500' />
       </Card.Header>
       <Skeleton
-        isLoaded={governanceData.loaded}
-        minHeight={governanceData.loaded ? 'auto' : '176px'}
+        isLoaded={Boolean(governanceData)}
+        minHeight={Boolean(governanceData) ? 'auto' : '176px'}
       >
-        {governanceData?.data.map((proposal, i) => (
+        {governanceData?.map((proposal, i) => (
           <Card.Body key={i}>
             <Box>
               <Link

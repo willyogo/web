@@ -1,6 +1,6 @@
 import axios from 'axios'
 import { getConfig } from 'config'
-import { useEffect, useState } from 'react'
+import memoize from 'lodash/memoize'
 import { bnOrZero } from 'lib/bignumber/bignumber'
 
 type BoardroomGovernanceData = Array<{
@@ -11,9 +11,21 @@ type BoardroomGovernanceData = Array<{
   refId: string
 }>
 
+export type ParsedBoardroomGovernanceData = Array<{
+  refId: string
+  title: string
+  choices: string[]
+  results: Array<{
+    absolute: string
+    percent: string
+  }>
+}>
+
 const BOARDROOM_API_BASE_URL = getConfig().REACT_APP_BOARDROOM_API_BASE_URL
 
-const parseGovernanceData = (governanceData: BoardroomGovernanceData) => {
+const parseGovernanceData = (
+  governanceData: BoardroomGovernanceData,
+): ParsedBoardroomGovernanceData => {
   const activeProposals = governanceData.filter(data => data.currentState === 'active')
   const proposals = activeProposals.length ? activeProposals : [governanceData[0]]
 
@@ -28,36 +40,23 @@ const parseGovernanceData = (governanceData: BoardroomGovernanceData) => {
       title,
       choices,
       results: results.map(result => ({
-        absolute: result.total,
+        absolute: bnOrZero(result.total).toString(),
         percent: bnOrZero(result.total).div(totalResults).toString(),
       })),
     }
   })
 }
 
-export const useGovernanceData = () => {
-  const [data, setData] = useState<ReturnType<typeof parseGovernanceData>>([])
-  const [error, setError] = useState<any>()
-  const [loaded, setLoaded] = useState<boolean>(false)
-
-  useEffect(() => {
-    const loadGovernanceData = async () => {
-      try {
-        const response = await axios.get<{ data: BoardroomGovernanceData }>(
-          `${BOARDROOM_API_BASE_URL}proposals`,
-        )
-        const governanceData = response?.data?.data
-        const parsedGovernanceData = parseGovernanceData(governanceData)
-        setData(parsedGovernanceData)
-      } catch (e) {
-        setError(e)
-      } finally {
-        setLoaded(true)
-      }
-    }
-
-    loadGovernanceData()
-  }, [])
-
-  return { data, error, loaded }
-}
+export const getGovernanceData = memoize(async () => {
+  try {
+    const response = await axios.get<{ data: BoardroomGovernanceData }>(
+      `${BOARDROOM_API_BASE_URL}proposals`,
+    )
+    const governanceData = response?.data?.data
+    const parsedGovernanceData = parseGovernanceData(governanceData)
+    return parsedGovernanceData
+  } catch (e) {
+    console.error(e)
+    return null
+  }
+})
