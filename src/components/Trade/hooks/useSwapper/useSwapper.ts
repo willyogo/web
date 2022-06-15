@@ -1,7 +1,10 @@
+import { ChainId } from '@shapeshiftoss/caip'
+import { ethereum } from '@shapeshiftoss/chain-adapters'
 import { HDWallet } from '@shapeshiftoss/hdwallet-core'
 import { NativeHDWallet } from '@shapeshiftoss/hdwallet-native'
 import {
   QuoteFeeData,
+  Swapper,
   SwapperManager,
   Trade,
   TradeQuote,
@@ -9,7 +12,7 @@ import {
   TradeTxs,
   ZrxSwapper,
 } from '@shapeshiftoss/swapper'
-import { Asset, SupportedChainIds, SwapperType } from '@shapeshiftoss/types'
+import { Asset, KnownChainIds, SwapperType } from '@shapeshiftoss/types'
 import debounce from 'lodash/debounce'
 import { useCallback, useRef, useState } from 'react'
 import { useFormContext, useWatch } from 'react-hook-form'
@@ -45,14 +48,17 @@ export const useSwapper = () => {
   const [quote, sellTradeAsset, trade] = useWatch({
     name: ['quote', 'sellAsset', 'trade'],
   }) as [
-    TradeQuote<SupportedChainIds> & Trade<SupportedChainIds>,
+    TradeQuote<KnownChainIds> & Trade<KnownChainIds>,
     TradeAsset | undefined,
-    Trade<SupportedChainIds>,
+    Trade<KnownChainIds>,
   ]
   const adapterManager = useChainAdapters()
+  const adapter = adapterManager.get(KnownChainIds.EthereumMainnet) as
+    | ethereum.ChainAdapter
+    | undefined
   const [swapperManager] = useState<SwapperManager>(() => {
     const manager = new SwapperManager()
-    manager.addSwapper(SwapperType.Zrx, new ZrxSwapper({ web3: web3Instance, adapterManager }))
+    adapter && manager.addSwapper(SwapperType.Zrx, new ZrxSwapper({ web3: web3Instance, adapter }))
     return manager
   })
 
@@ -157,10 +163,10 @@ export const useSwapper = () => {
   }
 
   const getTradeTxs = async (tradeResult: TradeResult): Promise<TradeTxs> => {
-    const swapper = await swapperManager.getBestSwapper({
+    const swapper = (await swapperManager.getBestSwapper({
       buyAssetId: trade.buyAsset.assetId,
       sellAssetId: trade.sellAsset.assetId,
-    })
+    })) as Swapper<ChainId, TradeTxs>
     if (!swapper) throw new Error('no swapper available')
     return swapper.getTradeTxs(tradeResult)
   }
@@ -243,7 +249,7 @@ export const useSwapper = () => {
   }
 
   const setFees = async (
-    trade: Trade<SupportedChainIds> | TradeQuote<SupportedChainIds>,
+    trade: Trade<KnownChainIds> | TradeQuote<KnownChainIds>,
     sellAsset: Asset,
   ) => {
     const feeBN = bnOrZero(trade?.feeData?.fee).dividedBy(
@@ -276,7 +282,7 @@ export const useSwapper = () => {
         }
         break
       default:
-        throw new Error('Unsupported chain ' + sellAsset.chain)
+        throw new Error('Unsupported chain ' + sellAsset.chainId)
     }
   }
 

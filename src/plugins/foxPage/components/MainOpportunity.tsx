@@ -71,8 +71,8 @@ export const MainOpportunity = ({ apy, assetId, tvl, balance, onClick }: MainOpp
               <Amount value={balance ?? ''} color='inherit' fontSize={'xl'} />
             </Skeleton>
           </Box>
-          <Skeleton isLoaded={!isFoxyBalancesLoading}>
-            <Box alignSelf='center'>
+          <Skeleton isLoaded={!isFoxyBalancesLoading} alignSelf='center'>
+            <Box>
               <Button onClick={onClick} colorScheme={'blue'}>
                 <CText>
                   {translate(

@@ -3,13 +3,24 @@ import { getConfig } from 'config'
 import memoize from 'lodash/memoize'
 import { bnOrZero } from 'lib/bignumber/bignumber'
 
-type BoardroomGovernanceData = Array<{
+// Non-exhaustive typings. We do not want to keep this a 1/1 mapping to an external API
+export type BoardroomGovernanceResult = {
   currentState: string
   title: string
   choices: Array<string>
   results: Array<{ total: number; choice: number }>
   refId: string
-}>
+}
+
+export type ParsedBoardroomGovernanceResult = {
+  refId: string
+  title: string
+  choices: string[]
+  results: Array<{
+    absolute: string
+    percent: string
+  }>
+}
 
 export type ParsedBoardroomGovernanceData = Array<{
   refId: string
@@ -23,9 +34,9 @@ export type ParsedBoardroomGovernanceData = Array<{
 
 const BOARDROOM_API_BASE_URL = getConfig().REACT_APP_BOARDROOM_API_BASE_URL
 
-const parseGovernanceData = (
-  governanceData: BoardroomGovernanceData,
-): ParsedBoardroomGovernanceData => {
+export const parseGovernanceData = (
+  governanceData: BoardroomGovernanceResult[],
+): ParsedBoardroomGovernanceResult[] => {
   const activeProposals = governanceData.filter(data => data.currentState === 'active')
   const proposals = activeProposals.length ? activeProposals : [governanceData[0]]
 
@@ -39,9 +50,9 @@ const parseGovernanceData = (
       refId,
       title,
       choices,
-      results: results.map(result => ({
-        absolute: bnOrZero(result.total).toString(),
-        percent: bnOrZero(result.total).div(totalResults).toString(),
+      results: choices.map((_, i) => ({
+        absolute: bnOrZero(results[i]?.total).toString(),
+        percent: results[i] ? bnOrZero(results[i].total).div(totalResults).toString() : '0',
       })),
     }
   })
@@ -49,7 +60,7 @@ const parseGovernanceData = (
 
 export const getGovernanceData = memoize(async () => {
   try {
-    const response = await axios.get<{ data: BoardroomGovernanceData }>(
+    const response = await axios.get<{ data: BoardroomGovernanceResult[] }>(
       `${BOARDROOM_API_BASE_URL}proposals`,
     )
     const governanceData = response?.data?.data
