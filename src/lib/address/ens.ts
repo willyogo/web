@@ -7,12 +7,10 @@ import { web3Provider } from 'lib/web3-provider'
 import { ReverseLookupVanityAddress } from './address'
 import { ResolveVanityAddress, ResolveVanityAddressReturn, ValidateVanityAddress } from './address'
 
-const ens = (() => {
-  return new ENS({
-    provider: web3Provider,
-    ensAddress: getEnsAddress(CHAIN_REFERENCE.EthereumMainnet),
-  })
-})()
+const ens = new ENS({
+  provider: web3Provider,
+  ensAddress: getEnsAddress(CHAIN_REFERENCE.EthereumMainnet),
+})
 
 export const resolveEnsDomain: ResolveVanityAddress = async ({ value }) => ensLookup(value)
 
