@@ -1,7 +1,5 @@
 import { ChainId } from '@shapeshiftoss/caip'
 import { ethereum } from '@shapeshiftoss/chain-adapters'
-import { HDWallet } from '@shapeshiftoss/hdwallet-core'
-import { NativeHDWallet } from '@shapeshiftoss/hdwallet-native'
 import {
   QuoteFeeData,
   Swapper,
@@ -14,12 +12,13 @@ import {
 } from '@shapeshiftoss/swapper'
 import { Asset, KnownChainIds, SwapperType } from '@shapeshiftoss/types'
 import debounce from 'lodash/debounce'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useFormContext, useWatch } from 'react-hook-form'
 import { useSelector } from 'react-redux'
 import { TradeAmountInputField, TradeAsset } from 'components/Trade/types'
 import { useChainAdapters } from 'context/PluginProvider/PluginProvider'
 import { useErrorHandler } from 'hooks/useErrorToast/useErrorToast'
+import { useWallet } from 'hooks/useWallet/useWallet'
 import { bn, bnOrZero } from 'lib/bignumber/bignumber'
 import { fromBaseUnit } from 'lib/math'
 import { web3Instance } from 'lib/web3-instance'
@@ -53,14 +52,36 @@ export const useSwapper = () => {
     Trade<KnownChainIds>,
   ]
   const adapterManager = useChainAdapters()
-  const adapter = adapterManager.get(KnownChainIds.EthereumMainnet) as
-    | ethereum.ChainAdapter
-    | undefined
   const [swapperManager] = useState<SwapperManager>(() => {
     const manager = new SwapperManager()
-    adapter && manager.addSwapper(SwapperType.Zrx, new ZrxSwapper({ web3: web3Instance, adapter }))
     return manager
   })
+
+  useEffect(() => {
+    if (!adapterManager || !swapperManager) return
+    ;(async () => {
+      // const midgardUrl = getConfig().REACT_APP_MIDGARD_URL
+      // const thorSwapper = new ThorchainSwapper({
+      //   midgardUrl,
+      //   adapterManager,
+      //   web3,
+      // })
+      // await thorSwapper.initialize()
+      // swapperManager.addSwapper(SwapperType.Thorchain, thorSwapper)
+
+      const zrxSwapper = new ZrxSwapper({
+        web3: web3Instance,
+        adapter: adapterManager.get('eip155:1') as unknown as ethereum.ChainAdapter,
+      })
+
+      await zrxSwapper.initialize()
+      swapperManager.addSwapper(SwapperType.Zrx, zrxSwapper)
+    })()
+  }, [adapterManager, swapperManager])
+
+  const {
+    state: { wallet },
+  } = useWallet()
 
   const filterAssetsByIds = (assets: Asset[], assetIds: string[]) => {
     const assetIdMap = Object.fromEntries(assetIds.map(assetId => [assetId, true]))
@@ -110,7 +131,6 @@ export const useSwapper = () => {
     sellAsset,
     feeAsset,
   }: {
-    wallet: HDWallet
     sellAsset: Asset
     buyAsset: Asset
     feeAsset: Asset
@@ -132,12 +152,10 @@ export const useSwapper = () => {
   }
 
   const updateTrade = async ({
-    wallet,
     sellAsset,
     buyAsset,
     amount,
   }: {
-    wallet: HDWallet
     sellAsset: Asset
     buyAsset: Asset
     amount: string
@@ -148,16 +166,28 @@ export const useSwapper = () => {
     })
 
     if (!swapper) throw new Error('no swapper available')
+    if (!wallet) throw new Error('no wallet available')
 
-    const result = await swapper.buildTrade({
-      sellAmount: amount,
-      sellAsset,
-      buyAsset,
-      sellAssetAccountNumber: 0, // TODO: remove hard coded accountId when multiple accounts are implemented
-      buyAssetAccountNumber: 0, // TODO: remove hard coded accountId when multiple accounts are implemented
-      wallet,
-      sendMax: true,
-    })
+    const result = await (async () => {
+      if (sellAsset.chainId === 'eip155:1') {
+        return swapper.buildTrade({
+          chainId: sellAsset.chainId,
+          sellAmount: amount,
+          sellAsset,
+          buyAsset,
+          sellAssetAccountNumber: 0, // TODO: remove hard coded accountId when multiple accounts are implemented
+          buyAssetAccountNumber: 0, // TODO: remove hard coded accountId when multiple accounts are implemented
+          wallet,
+          sendMax: true,
+        })
+      } else if (sellAsset.chainId === 'bip122:000000000019d6689c085ae165831e93') {
+        // TODO do bitcoin specific trade quote including `bip44Params`, `accountType` and `wallet`
+        // They will need to have selected an accountType from a modal if bitcoin
+        throw new Error('bitcoin unsupported')
+      }
+      throw new Error(`unsupported chain id ${sellAsset.chainId}`)
+    })()
+
     setFees(result, sellAsset)
     setValue('trade', result)
   }
@@ -166,22 +196,23 @@ export const useSwapper = () => {
     const swapper = (await swapperManager.getBestSwapper({
       buyAssetId: trade.buyAsset.assetId,
       sellAssetId: trade.sellAsset.assetId,
-    })) as Swapper<ChainId, TradeTxs>
+    })) as Swapper<ChainId>
     if (!swapper) throw new Error('no swapper available')
     return swapper.getTradeTxs(tradeResult)
   }
 
-  const executeQuote = async ({ wallet }: { wallet: HDWallet }): Promise<TradeResult> => {
+  const executeQuote = async (): Promise<TradeResult> => {
     const swapper = await swapperManager.getBestSwapper({
       buyAssetId: trade.buyAsset.assetId,
       sellAssetId: trade.sellAsset.assetId,
     })
     if (!swapper) throw new Error('no swapper available')
+    if (!wallet) throw new Error('no wallet available')
     return swapper.executeTrade({ trade, wallet })
   }
 
   const updateQuoteDebounced = useRef(
-    debounce(async ({ amount, sellAsset, buyAsset, action }) => {
+    debounce(async ({ amount, sellAsset, buyAsset, action, wallet }) => {
       try {
         const swapper = await swapperManager.getBestSwapper({
           buyAssetId: buyAsset.assetId,
@@ -205,13 +236,24 @@ export const useSwapper = () => {
           action,
         })
 
-        const tradeQuote = await swapper.getTradeQuote({
-          sellAsset,
-          buyAsset,
-          sellAmount,
-          sendMax: false,
-          sellAssetAccountNumber: 0,
-        })
+        const tradeQuote: TradeQuote<KnownChainIds> = await (async () => {
+          if (sellAsset.chainId === 'eip155:1') {
+            return swapper.getTradeQuote({
+              chainId: 'eip155:1',
+              sellAsset,
+              buyAsset,
+              sellAmount,
+              sendMax: false,
+              sellAssetAccountNumber: 0,
+              wallet,
+            })
+          } else if ('bip122:000000000019d6689c085ae165831e93') {
+            // TODO do bitcoin specific trade quote including `bip44Params`, `accountType` and `wallet`
+            // They will need to have selected an accountType from a modal if bitcoin
+            throw new Error('bitcoin unsupported')
+          }
+          throw new Error(`unsupported chain id ${sellAsset.chainId}`)
+        })()
 
         setFees(tradeQuote, sellAsset)
 
@@ -237,6 +279,7 @@ export const useSwapper = () => {
     action,
     forceQuote,
   }: GetQuoteInput) => {
+    if (!wallet) return
     if (!forceQuote && bnOrZero(amount).isZero()) return
     setValue('quote', undefined)
     await updateQuoteDebounced.current({
@@ -245,6 +288,7 @@ export const useSwapper = () => {
       sellAsset,
       action,
       buyAsset,
+      wallet,
     })
   }
 
@@ -286,24 +330,26 @@ export const useSwapper = () => {
     }
   }
 
-  const checkApprovalNeeded = async (wallet: HDWallet | NativeHDWallet): Promise<boolean> => {
+  const checkApprovalNeeded = async (): Promise<boolean> => {
     const swapper = await swapperManager.getBestSwapper({
       buyAssetId: quote.buyAsset.assetId,
       sellAssetId: quote.sellAsset.assetId,
     })
 
     if (!swapper) throw new Error('no swapper available')
+    if (!wallet) throw new Error('no wallet available')
     const { approvalNeeded } = await swapper.approvalNeeded({ quote, wallet })
     return approvalNeeded
   }
 
-  const approveInfinite = async (wallet: HDWallet | NativeHDWallet): Promise<string> => {
+  const approveInfinite = async (): Promise<string> => {
     const swapper = await swapperManager.getBestSwapper({
       buyAssetId: quote.buyAsset.assetId,
       sellAssetId: quote.sellAsset.assetId,
     })
 
     if (!swapper) throw new Error('no swapper available')
+    if (!wallet) throw new Error('no wallet available')
     const txid = await swapper.approveInfinite({ quote, wallet })
     return txid
   }

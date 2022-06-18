@@ -58,7 +58,7 @@ export const FoxyDeposit = ({ api }: FoxyDepositProps) => {
     ;(async () => {
       try {
         const chainAdapter = await chainAdapterManager.get(KnownChainIds.EthereumMainnet)
-        if (!walletState.wallet || !contractAddress || !foxyApr || !chain) return
+        if (!(walletState.wallet && !contractAddress && !foxyApr && chainAdapter)) return
         const [address, foxyOpportunity] = await Promise.all([
           chainAdapter.getAddress({ wallet: walletState.wallet }),
           api.getFoxyOpportunityByStakingAddress(contractAddress),

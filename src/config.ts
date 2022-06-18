@@ -19,6 +19,7 @@ const validators = {
   REACT_APP_UNCHAINED_OSMOSIS_HTTP_URL: url(),
   REACT_APP_UNCHAINED_OSMOSIS_WS_URL: url(),
   REACT_APP_ETHEREUM_NODE_URL: url(),
+  REACT_APP_ALCHEMY_POLYGON_URL: url(),
   REACT_APP_KEEPKEY_VERSIONS_URL: url(),
   REACT_APP_WALLET_MIGRATION_URL: url(),
   REACT_APP_PORTIS_DAPP_ID: str({ devDefault: 'fakePortisId' }),
@@ -40,6 +41,9 @@ const validators = {
   }),
   REACT_APP_BOARDROOM_APP_BASE_URL: url({
     default: 'https://boardroom.io/shapeshift/',
+  }),
+  REACT_APP_MIDGARD_URL: url({
+    default: 'https://midgard.thorchain.info/v2',
   }),
 }
 
