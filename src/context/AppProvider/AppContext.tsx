@@ -193,17 +193,17 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     accountSpecifiersList.forEach(accountSpecifierMap => {
       dispatch(getAccount.initiate({ accountSpecifierMap }, { forceRefetch: true }))
     })
+    const { getAprData } = aprDataApi.endpoints
+    dispatch(getAprData.initiate({}))
   }, [dispatch, accountSpecifiersList])
 
-  // once portfolio is done loading, fetch all transaction history and apr data
+  // once portfolio is done loading, fetch all transaction history
   useEffect(() => {
     if (!isPortfolioLoaded) return
 
     const { getAllTxHistory } = txHistoryApi.endpoints
-    const { getAprData } = aprDataApi.endpoints
 
     dispatch(getAllTxHistory.initiate({ accountSpecifiersList }, { forceRefetch: true }))
-    dispatch(getAprData.initiate({}))
   }, [dispatch, accountSpecifiersList, isPortfolioLoaded])
 
   // once portfolio and transaction history are done loading, fetch remaining chain specific data
