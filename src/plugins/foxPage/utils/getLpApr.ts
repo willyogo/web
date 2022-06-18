@@ -11,7 +11,7 @@ import {
 import { calculateAPRFromToken0, ethersProvider } from '../utils'
 import { getCurrentBlockNumber } from './getCurrentBlockNumber'
 
-export const getLpApr = async (): Promise<string> => {
+const lpApr = (async (): Promise<string> => {
   const blockNumber = await getCurrentBlockNumber()
 
   if (!blockNumber) return ''
@@ -38,4 +38,6 @@ export const getLpApr = async (): Promise<string> => {
 
   const lpApr = bnOrZero(apr).div(100).toString()
   return lpApr
-}
+})()
+
+export const getLpApr = () => lpApr

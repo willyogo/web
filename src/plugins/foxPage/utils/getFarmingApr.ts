@@ -12,7 +12,7 @@ import {
 import farmingAbi from '../farmingAbi.json'
 import { ethersProvider, rewardRatePerToken } from '../utils'
 
-export const getFarmingApr = async (): Promise<string> => {
+const farmingApr = (async (): Promise<string> => {
   const liquidityContractAddress = UNISWAP_V2_WETH_FOX_POOL_ADDRESS
   const uniswapLPContract = new Contract(
     liquidityContractAddress,
@@ -54,4 +54,6 @@ export const getFarmingApr = async (): Promise<string> => {
   const farmingApr = bnOrZero(apr).div(100).toString()
 
   return farmingApr
-}
+})()
+
+export const getFarmingApr = () => farmingApr

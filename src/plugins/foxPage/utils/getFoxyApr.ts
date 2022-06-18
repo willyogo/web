@@ -15,7 +15,7 @@ type TokemakChainData = {
   pools: TokemakPool[]
 }
 
-export const getFoxyApr = async (): Promise<string | null> => {
+const foxyApr = (async (): Promise<string | null> => {
   const tokemakDataResponse = await axios.get<{ chains: TokemakChainData[] }>(TOKEMAK_STATS_URL)
   const tokemakData = tokemakDataResponse?.data
 
@@ -32,4 +32,6 @@ export const getFoxyApr = async (): Promise<string | null> => {
   const foxyApr = tFoxPool.liquidityProviderApr
 
   return foxyApr
-}
+})()
+
+export const getFoxyApr = () => foxyApr
